@@ -5,7 +5,7 @@ import generator
 
 
 print("****************************************************")
-print("* OpenGM Client Tool - ver 3.0.0")
+print("* OpenGM Client Tool - ver 3.1.0")
 print("****************************************************")
 
 default_api_key = "ef43c22d3e5fb1a8bc94001966a6da4d"
