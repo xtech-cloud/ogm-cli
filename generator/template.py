@@ -424,18 +424,6 @@ namespace app
 }
 """
 
-template_bridge_extend_view_cs = r"""
-using System.Collections.Generic;
-using XTC.oelMVCS;
-namespace {{org}}.{{mod}}
-{
-    public interface IExtendViewBridge : View.Facade.Bridge
-    {
-    }
-}
-"""
-
-
 template_bridge_view_cs = r"""
 using System.Collections.Generic;
 using XTC.oelMVCS;
@@ -448,16 +436,15 @@ namespace {{org}}.{{mod}}
 }
 """
 
-template_bridge_extend_ui_cs = r"""
-using System.Collections.Generic;
-using XTC.oelMVCS;
+template_bridge_extend_view_cs = r"""
 namespace {{org}}.{{mod}}
 {
-    public interface IExtendUiBridge : View.Facade.Bridge
+    public interface I{{service}}ExtendViewBridge
     {
     }
 }
 """
+
 
 template_bridge_ui_cs = r"""
 using System.Collections.Generic;
@@ -470,6 +457,15 @@ namespace {{org}}.{{mod}}
         void Alert(string _message);
         void UpdatePermission(Dictionary<string,string> _permission);
 {{rpc}}
+    }
+}
+"""
+
+template_bridge_extend_ui_cs = r"""
+namespace {{org}}.{{mod}}
+{
+    public interface I{{service}}ExtendUiBridge
+    {
     }
 }
 """
@@ -911,14 +907,14 @@ namespace {{org}}.{{mod}}
 }
 """
 
-template_module_ViewBridge_cs = r"""
+template_module_BaseViewBridge_cs = r"""
 using System.Collections.Generic;
 using System.Text.Json;
 using XTC.oelMVCS;
 
 namespace {{org}}.{{mod}}
 {
-    public class {{service}}ViewBridge : I{{service}}ViewBridge
+    public class {{service}}BaseViewBridge : I{{service}}ViewBridge
     {
         public {{service}}View view{ get; set; }
         public {{service}}Service service{ get; set; }
@@ -929,14 +925,14 @@ namespace {{org}}.{{mod}}
 }
 """
 
-template_module_ExtendViewBridge_cs = r"""
+template_module_ViewBridge_cs = r"""
 using System.Collections.Generic;
 using System.Text.Json;
 using XTC.oelMVCS;
 
 namespace {{org}}.{{mod}}
 {
-    public class ExtendViewBridge : IExtendViewBridge
+    public class {{service}}ViewBridge : {{service}}BaseViewBridge, I{{service}}ExtendViewBridge
     {
     }
 }
@@ -1148,7 +1144,7 @@ namespace {{org}}.{{mod}}
 {
     public partial class {{service}}Control: UserControl
     {
-        public class {{service}}UiBridge : Base{{service}}UiBridge
+        public class {{service}}UiBridge : Base{{service}}UiBridge, I{{service}}ExtendUiBridge
         {
         }
 
@@ -1206,7 +1202,7 @@ template_module_model_method = r"""
 """
 
 template_view_router = r"""
-            addRouter("_.reply.arrived:{{org}}/{{mod}}/{{service}}/{{rpc}}", this.handleReceive{{service}}{{rpc}});
+            addObserver({{service}}Model.NAME, "_.reply.arrived:{{org}}/{{mod}}/{{service}}/{{rpc}}", this.handleReceive{{service}}{{rpc}});
 """
 
 template_view_handler = r"""

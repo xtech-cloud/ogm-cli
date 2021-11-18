@@ -248,18 +248,6 @@ def create_vs_sln(_orgname, _servicename, _protodir):
             "{{mod}}", mod_name
             )
     file.write(filepath, contents, False)
-    # 生成ExtendBridgeView.cs
-    filepath = "./vs2019/bridge/IExtendViewBridge.cs"
-    contents = template.template_bridge_extend_view_cs
-    contents = contents.replace("{{org}}", org_name)
-    contents = contents.replace("{{mod}}", mod_name)
-    file.write(filepath, contents, False)
-    # 生成ExtendBridgeUi.cs
-    filepath = "./vs2019/bridge/IExtendUiBridge.cs"
-    contents = template.template_bridge_extend_ui_cs
-    contents = contents.replace("{{org}}", org_name)
-    contents = contents.replace("{{mod}}", mod_name)
-    file.write(filepath, contents, False)
     # 生成IViewBridge.cs文件
     for service in services.keys():
         filepath = "./vs2019/bridge/I{}ViewBridge.cs".format(service)
@@ -274,6 +262,14 @@ def create_vs_sln(_orgname, _servicename, _protodir):
         contents = contents.replace("{{service}}", service)
         contents = contents.replace("{{rpc}}", rpc_block)
         file.write(filepath, contents, True)
+    # 生成IExtendViewBridge.cs文件
+    for service in services.keys():
+        filepath = "./vs2019/bridge/I{}ExtendViewBridge.cs".format(service)
+        contents = template.template_bridge_extend_view_cs
+        contents = contents.replace("{{org}}", org_name)
+        contents = contents.replace("{{mod}}", mod_name)
+        contents = contents.replace("{{service}}", service)
+        file.write(filepath, contents, False)
     # 生成UiBridge.cs文件
     for service in services.keys():
         filepath = "./vs2019/bridge/I{}UiBridge.cs".format(service)
@@ -288,6 +284,14 @@ def create_vs_sln(_orgname, _servicename, _protodir):
         contents = contents.replace("{{service}}", service)
         contents = contents.replace("{{rpc}}", rpc_block)
         file.write(filepath, contents, True)
+    # 生成IExtendUiBridge.cs文件
+    for service in services.keys():
+        filepath = "./vs2019/bridge/I{}ExtendUiBridge.cs".format(service)
+        contents = template.template_bridge_extend_ui_cs
+        contents = contents.replace("{{org}}", org_name)
+        contents = contents.replace("{{mod}}", mod_name)
+        contents = contents.replace("{{service}}", service)
+        file.write(filepath, contents, False)
 
     # -----------------------------------------------------------------------------
     # 生成 module 解决方案
@@ -387,27 +391,29 @@ def create_vs_sln(_orgname, _servicename, _protodir):
         contents = contents.replace("{{mod}}", mod_name)
         contents = contents.replace("{{service}}", service)
         file.write(filepath, contents, True)
-    # 生成ViewBridge.cs文件
+    # 生成BaseViewBridge.cs文件
     for service in services.keys():
-        filepath = "./vs2019/module/{}ViewBridge.cs".format(service)
+        filepath = "./vs2019/module/{}BaseViewBridge.cs".format(service)
         rpc_block = ""
         for rpc_name in services[service].keys():
             req_name = services[service][rpc_name][0]
             rpc = template.template_viewbridge_method.replace("{{rpc}}", rpc_name)
             rpc = rpc.replace("{{req}}", req_name)
             rpc_block = rpc_block + str.format("{}\n", rpc)
-        contents = template.template_module_ViewBridge_cs
+        contents = template.template_module_BaseViewBridge_cs
         contents = contents.replace("{{org}}", org_name)
         contents = contents.replace("{{mod}}", mod_name)
         contents = contents.replace("{{service}}", service)
         contents = contents.replace("{{rpc}}", rpc_block)
         file.write(filepath, contents, True)
-    # 生成ExtendViewBridge.cs文件
-    filepath = "./vs2019/module/ExtendViewBridge.cs"
-    contents = template.template_module_ExtendViewBridge_cs
-    contents = contents.replace("{{org}}", org_name)
-    contents = contents.replace("{{mod}}", mod_name)
-    file.write(filepath, contents, False)
+    # 生成ViewBridge.cs文件
+    for service in services.keys():
+        filepath = "./vs2019/module/{}ViewBridge.cs".format(service)
+        contents = template.template_module_ViewBridge_cs
+        contents = contents.replace("{{org}}", org_name)
+        contents = contents.replace("{{mod}}", mod_name)
+        contents = contents.replace("{{service}}", service)
+        file.write(filepath, contents, False)
     # 生成Service.cs文件
     for service in services.keys():
         filepath = "./vs2019/module/{}Service.cs".format(service)
