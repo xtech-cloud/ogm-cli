@@ -175,6 +175,7 @@ namespace app
     class ConfigSchema
     {
         public string domain {get;set;}
+        public string apikey {get;set;}
     }
     class AppConfig: Config
     {
@@ -182,6 +183,7 @@ namespace app
         {
             ConfigSchema schema = JsonSerializer.Deserialize<ConfigSchema>(_content);
             fields_["domain"] = Any.FromString(schema.domain);
+            fields_["apikey"] = Any.FromString(schema.apikey);
         }
     }//class
 }//namespace
@@ -243,6 +245,7 @@ namespace app
 
 template_app_app_xaml_cs = r"""
 using System.Windows;
+using System.Text.Json;
 using XTC.oelMVCS;
 using {{org}}.{{mod}};
 
@@ -275,6 +278,9 @@ namespace app
         {
             logger_ = new ConsoleLogger();
             config_ = new AppConfig();
+
+            string json = JsonSerializer.Serialize(System.Environment.GetEnvironmentVariables());
+            config_.Merge(json);
 
             MainWindow mainWindow = new MainWindow();
             this.MainWindow = mainWindow;
@@ -967,9 +973,12 @@ namespace {{org}}.{{mod}}
     public class {{service}}BaseService: Service
     {
         protected {{service}}Model model = null;
+        protected Options options = null;
 
         protected override void preSetup()
         {
+            options = new Options();
+            options.header["apikey"] = getConfig().getField("apikey").AsString();
             model = findModel({{service}}Model.NAME) as {{service}}Model;
         }
 
@@ -991,8 +1000,9 @@ namespace {{org}}.{{mod}}
             {
                 HttpWebRequest req = (HttpWebRequest)WebRequest.Create(_url);
                 req.Method = _method;
-                req.ContentType =
-                "application/json;charset=utf-8";
+                req.ContentType = "application/json;charset=utf-8";
+                foreach (var pair in options.header)
+                    req.Headers.Add(pair.Key, pair.Value);
                 byte[] data = System.Text.Json.JsonSerializer.SerializeToUtf8Bytes(_params, JsonOptions.DefaultSerializerOptions);
                 req.ContentLength = data.Length;
                 using (Stream reqStream = req.GetRequestStream())
