@@ -464,7 +464,7 @@ def create_vs_sln(_orgname, _servicename, _protodir):
     # 生成BaseUiBridge.cs文件
     for service in services.keys():
         filepath = "./vs2019/wpf/Base{}UiBridge.cs".format(service)
-        template_method = "        public virtual void Receive{{rpc}}(string _json) {}\n"
+        template_method = template.template_wpf_receive_block
         rpc_block = ""
         for rpc_name in services[service].keys():
             rpc_block = rpc_block + template_method.replace("{{rpc}}", rpc_name)
@@ -499,6 +499,12 @@ def create_vs_sln(_orgname, _servicename, _protodir):
     # 生成ControlRoot.cs文件
     filepath = "./vs2019/wpf/ControlRoot.cs"
     contents = template.template_wpf_ControlRoot_cs
+    contents = contents.replace("{{org}}", org_name)
+    contents = contents.replace("{{mod}}", mod_name)
+    file.write(filepath, contents, False)
+    # 生成Reply.cs文件
+    filepath = "./vs2019/wpf/Reply.cs"
+    contents = template.template_wpf_Reply_cs
     contents = contents.replace("{{org}}", org_name)
     contents = contents.replace("{{mod}}", mod_name)
     file.write(filepath, contents, False)

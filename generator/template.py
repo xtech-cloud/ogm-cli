@@ -1085,6 +1085,27 @@ namespace {{org}}.{{mod}}
 }
 """
 
+template_wpf_Reply_cs = r"""
+namespace {{org}}.{{mod}}
+{
+    public class Reply
+    {
+        public class Status
+        {
+            public int code { get; set; }
+            public string message { get; set; }
+        }
+
+        public Status status { get; set; }
+
+        public Reply()
+        {
+            status = new Status();
+        }
+    }
+}
+"""
+
 template_wpf_ControlRoot_cs = r"""
 using XTC.oelMVCS;
 
@@ -1110,7 +1131,9 @@ namespace {{org}}.{{mod}}
 """
 
 template_wpf_BaseUiBridge_cs = r"""
+using System.Text.Json;
 using System.Collections.Generic;
+using HandyControl.Controls;
 
 namespace {{org}}.{{mod}}
 {
@@ -1284,4 +1307,14 @@ template_wpf_register_block = r"""
 template_wpf_cancel_block = r"""
                 // 注销UI装饰
                 framework_.getStaticPipe().CancelFacade({{service}}Facade.NAME);
+"""
+template_wpf_receive_block = r"""
+        public virtual void Receive{{rpc}}(string _json) 
+        {
+            Reply reply = JsonSerializer.Deserialize<Reply>(_json);
+            if (reply.status.code == 0)
+                Growl.Success("Success", "StatusGrowl");
+            else
+                Growl.Warning(reply.status.message, "StatusGrowl");
+        }
 """
