@@ -3,9 +3,10 @@ import sys
 import re
 from generator import parse
 from generator import file
-from generator import template
-from generator import types
+from generator.template import module as template
+from generator.types import module as types
 from typing import Dict, List, Tuple
+
 
 def generateServiceBlock(_enums, _messages, _services, _service, _org_name, _mod_name):
     rpc_block = ""
@@ -30,17 +31,18 @@ def generateServiceBlock(_enums, _messages, _services, _service, _org_name, _mod
                 field_type = types.type_dict[field_type]
 
             if (
-                    field_type in types.type_dict.values()
-                    or field_type.endswith("[]")
-                    or field_type.endswith("{}")
-                    ):
+                field_type in types.type_dict.values()
+                or field_type.endswith("[]")
+                or field_type.endswith("{}")
+            ):
                 assign_block = assign_block + str.format(
-                        '            paramMap["{}"] = _request._{};\n',
-                        field_name,
-                        field_name,
-                        )
+                    '            paramMap["{}"] = _request._{};\n',
+                    field_name,
+                    field_name,
+                )
         rpc_block = rpc_block.replace("{{assign}}", assign_block)
     return rpc_block
+
 
 def generateProtoBlock(_enums, _messages):
     proto_block = ""
@@ -64,74 +66,75 @@ def generateProtoBlock(_enums, _messages):
                 if field_type in types.type_dict.keys():
                     """可转换类型的数组, 使用Any转换"""
                     assign_block = assign_block + str.format(
-                            "                _{} = Any.From{}Ary(new {}[0]);\n",
-                            field_name,
-                            field_type.title(),
-                            field_type,
-                            )
+                        "                _{} = Any.From{}Ary(new {}[0]);\n",
+                        field_name,
+                        field_type.title(),
+                        field_type,
+                    )
                     field_block = field_block + str.format(
-                            '            [JsonPropertyName("{}")]\n            public Any _{} {{get;set;}}\n',
-                            field_name,
-                            field_name,
-                            )
+                        '            [JsonPropertyName("{}")]\n            public Any _{} {{get;set;}}\n',
+                        field_name,
+                        field_name,
+                    )
                 else:
                     """不可转换类型的数组, 使用直接实例化的方式"""
                     assign_block = assign_block + str.format(
-                            "                _{} = new {}[0];\n", field_name, field_type
-                            )
+                        "                _{} = new {}[0];\n", field_name, field_type
+                    )
                     field_block = field_block + str.format(
-                            '            [JsonPropertyName("{}")]\n            public {}[] _{} {{get;set;}}\n',
-                            field_name,
-                            field_type,
-                            field_name,
-                            )
+                        '            [JsonPropertyName("{}")]\n            public {}[] _{} {{get;set;}}\n',
+                        field_name,
+                        field_type,
+                        field_name,
+                    )
             elif field_type.endswith("<>"):
                 field_type = field_type[:-2]
                 """字典使用直接实例化的方式"""
                 assign_block = assign_block + str.format(
-                        "                _{} = new Dictionary<string, {}>();\n",
-                        field_name,
-                        field_type,
-                        )
+                    "                _{} = new Dictionary<string, {}>();\n",
+                    field_name,
+                    field_type,
+                )
                 field_block = field_block + str.format(
-                        '            [JsonPropertyName("{}")]\n            public Dictionary<string, {}> _{} {{get;set;}}\n',
-                        field_name,
-                        field_type,
-                        field_name,
-                        )
+                    '            [JsonPropertyName("{}")]\n            public Dictionary<string, {}> _{} {{get;set;}}\n',
+                    field_name,
+                    field_type,
+                    field_name,
+                )
             else:
                 if field_type in types.type_dict.keys():
                     """可转换类型的数组, 使用Any转换"""
                     csharp_type = types.type_dict[field_type]
                     any_type = types.type_to_any[csharp_type]
                     assign_block = assign_block + str.format(
-                            "                _{} = Any.From{}({});\n",
-                            field_name,
-                            any_type.title(),
-                            types.type_default_value[field_type],
-                            )
+                        "                _{} = Any.From{}({});\n",
+                        field_name,
+                        any_type.title(),
+                        types.type_default_value[field_type],
+                    )
                     field_block = field_block + str.format(
-                            '            [JsonPropertyName("{}")]\n            public Any _{} {{get;set;}}\n',
-                            field_name,
-                            field_name,
-                            )
+                        '            [JsonPropertyName("{}")]\n            public Any _{} {{get;set;}}\n',
+                        field_name,
+                        field_name,
+                    )
                 else:
                     """不可转换类型, 使用直接实例化的方式"""
                     assign_block = assign_block + str.format(
-                            "                _{} = new {}();\n", field_name, field_type
-                            )
+                        "                _{} = new {}();\n", field_name, field_type
+                    )
                     field_block = field_block + str.format(
-                            '            [JsonPropertyName("{}")]\n            public {} _{} {{get;set;}}\n',
-                            field_name,
-                            field_type,
-                            field_name,
-                            )
-        message_block = template.template_proto_class.replace("{{message}}", message_name)
+                        '            [JsonPropertyName("{}")]\n            public {} _{} {{get;set;}}\n',
+                        field_name,
+                        field_type,
+                        field_name,
+                    )
+        message_block = template.template_proto_class.replace(
+            "{{message}}", message_name
+        )
         message_block = message_block.replace("{{field}}", field_block)
         message_block = message_block.replace("{{assign}}", assign_block)
         proto_block = proto_block + message_block
     return proto_block
-
 
 
 def create_vs_sln(_orgname, _servicename, _protodir):
@@ -245,8 +248,8 @@ def create_vs_sln(_orgname, _servicename, _protodir):
     # 生成.proj文件
     filepath = "./vs2019/bridge/bridge.csproj"
     contents = template.template_proj_bridge.replace("{{org}}", org_name).replace(
-            "{{mod}}", mod_name
-            )
+        "{{mod}}", mod_name
+    )
     file.write(filepath, contents, False)
     # 生成IViewBridge.cs文件
     for service in services.keys():
@@ -300,20 +303,21 @@ def create_vs_sln(_orgname, _servicename, _protodir):
     # 生成.proj文件
     filepath = "./vs2019/module/module.csproj"
     contents = template.template_proj_module.replace("{{org}}", org_name).replace(
-            "{{mod}}", mod_name
-            )
+        "{{mod}}", mod_name
+    )
     file.write(filepath, contents, False)
     # 生成ModuleRoot.cs文件
     filepath = "./vs2019/module/ModuleRoot.cs"
     register_block = ""
     cancel_block = ""
     for service in services.keys():
-        register_block = register_block + template.template_module_register_block.replace(
-                "{{service}}", service
-                )
+        register_block = (
+            register_block
+            + template.template_module_register_block.replace("{{service}}", service)
+        )
         cancel_block = cancel_block + template.template_module_cancel_block.replace(
-                "{{service}}", service
-                )
+            "{{service}}", service
+        )
     contents = template.template_module_ModuleRoot_cs
     contents = contents.replace("{{org}}", org_name)
     contents = contents.replace("{{mod}}", mod_name)
@@ -361,13 +365,13 @@ def create_vs_sln(_orgname, _servicename, _protodir):
         for rpc_name in services[service].keys():
             rsp_name = services[service][rpc_name][1]
             router_block = router_block + template.template_view_router.replace(
-                    "{{org}}", org_name
-                    ).replace("{{mod}}", mod_name).replace("{{service}}", service).replace(
-                            "{{rpc}}", rpc_name
-                            )
+                "{{org}}", org_name
+            ).replace("{{mod}}", mod_name).replace("{{service}}", service).replace(
+                "{{rpc}}", rpc_name
+            )
             handler_block = handler_block + template.template_view_handler.replace(
-                    "{{service}}", service
-                    ).replace("{{rpc}}", rpc_name).replace("{{rsp}}", rsp_name)
+                "{{service}}", service
+            ).replace("{{rpc}}", rpc_name).replace("{{rsp}}", rsp_name)
         contents = template.template_module_BaseView_cs
         contents = contents.replace("{{org}}", org_name)
         contents = contents.replace("{{mod}}", mod_name)
@@ -425,7 +429,9 @@ def create_vs_sln(_orgname, _servicename, _protodir):
     # 生成BaseService.cs文件
     for service in services.keys():
         filepath = "./vs2019/module/{}BaseService.cs".format(service)
-        rpc_block = generateServiceBlock(enums, messages, services, service, org_name, mod_name)
+        rpc_block = generateServiceBlock(
+            enums, messages, services, service, org_name, mod_name
+        )
         contents = template.template_module_BaseService_cs
         contents = contents.replace("{{org}}", org_name)
         contents = contents.replace("{{mod}}", mod_name)
@@ -459,7 +465,9 @@ def create_vs_sln(_orgname, _servicename, _protodir):
     os.makedirs("vs2019/wpf", exist_ok=True)
     # 生成.proj文件
     filepath = "./vs2019/wpf/wpf.csproj"
-    contents = template.template_proj_wpf.replace("{{org}}", org_name).replace("{{mod}}", mod_name)
+    contents = template.template_proj_wpf.replace("{{org}}", org_name).replace(
+        "{{mod}}", mod_name
+    )
     file.write(filepath, contents, False)
     # 生成BaseUiBridge.cs文件
     for service in services.keys():
@@ -481,14 +489,14 @@ def create_vs_sln(_orgname, _servicename, _protodir):
     cancel_block = ""
     for service in services.keys():
         members_block = members_block + template.template_wpf_members_block.replace(
-                "{{service}}", service
-                )
+            "{{service}}", service
+        )
         register_block = register_block + template.template_wpf_register_block.replace(
-                "{{service}}", service
-                )
+            "{{service}}", service
+        )
         cancel_block = cancel_block + template.template_wpf_cancel_block.replace(
-                "{{service}}", service
-                )
+            "{{service}}", service
+        )
     contents = template.template_wpf_BaseControlRoot_cs
     contents = contents.replace("{{org}}", org_name)
     contents = contents.replace("{{mod}}", mod_name)
