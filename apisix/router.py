@@ -92,7 +92,7 @@ def push(_address, _apikey, _org, _servicename, _protodir):
                     "grpc-transcode": {
                         "deadline": 0,
                         "method": rpc_name,
-                        "pb_option": ["no_default_values"],
+                        "pb_option": ["no_default_values", "enum_as_value"],
                         "proto_id": _servicename,
                         "service": _servicename + "." + service_name,
                     }
