@@ -306,8 +306,8 @@ def create_vs_sln(_orgname, _servicename, _protodir):
         "{{mod}}", mod_name
     )
     file.write(filepath, contents, False)
-    # 生成ModuleRoot.cs文件
-    filepath = "./vs2019/module/ModuleRoot.cs"
+    # 生成ModuleBaseRoot.cs文件
+    filepath = "./vs2019/module/ModuleBaseRoot.cs"
     register_block = ""
     cancel_block = ""
     for service in services.keys():
@@ -318,12 +318,18 @@ def create_vs_sln(_orgname, _servicename, _protodir):
         cancel_block = cancel_block + template.template_module_cancel_block.replace(
             "{{service}}", service
         )
-    contents = template.template_module_ModuleRoot_cs
+    contents = template.template_module_ModuleBaseRoot_cs
     contents = contents.replace("{{org}}", org_name)
     contents = contents.replace("{{mod}}", mod_name)
     contents = contents.replace("{{register}}", register_block)
     contents = contents.replace("{{cancel}}", cancel_block)
     file.write(filepath, contents, True)
+    # 生成ModuleRoot.cs文件
+    filepath = "./vs2019/module/ModuleRoot.cs"
+    contents = template.template_module_ModuleRoot_cs
+    contents = contents.replace("{{org}}", org_name)
+    contents = contents.replace("{{mod}}", mod_name)
+    file.write(filepath, contents, False)
     # 生成Model.cs文件
     for service in services.keys():
         filepath = "./vs2019/module/{}Model.cs".format(service)

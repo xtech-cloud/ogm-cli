@@ -36,6 +36,7 @@ var (
 """
 
 template_makefile = r"""
+APP_NAME        := {{org}}-{{service}}
 BUILD_VERSION   := $(shell git tag --contains)
 BUILD_TIME      := $(shell date "+%F %T")
 COMMIT_SHA1     := $(shell git rev-parse HEAD )
@@ -474,6 +475,7 @@ template_model_service = r"""package model
 
 import (
 	"time"
+    "gorm.io/gorm/clause"
 )
 
 type {{rpc_service}} struct {
@@ -514,6 +516,20 @@ func (this *{{rpc_service}}DAO) Insert(_entity *{{rpc_service}}) error {
 func (this *{{rpc_service}}DAO) Update(_entity *{{rpc_service}}) error {
     // 只更新非零值
 	return this.conn.DB.Updates(_entity).Error
+}
+
+func (this *{{rpc_service}}DAO) Upsert(_entity *{{rpc_service}}) error {
+    // 在冲突时，更新除主键以外的所有列到新值。
+    err := this.conn.DB.Clauses(clause.OnConflict{
+        UpdateAll: true,
+    }).Create(_entity).Error
+    return err
+}
+
+func (this *{{rpc_service}}DAO) Get(_uuid string) (*{{rpc_service}}, error) {
+    var entity {{rpc_service}}
+    err := this.conn.DB.Where("uuid = ?", _uuid).First(&entity).Error
+    return &entity, err
 }
 
 func (this *{{rpc_service}}DAO) List(_offset int64, _count int64) (int64, []*{{rpc_service}}, error) {

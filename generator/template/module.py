@@ -476,34 +476,43 @@ namespace {{org}}.{{mod}}
 }
 """
 
+template_module_ModuleBaseRoot_cs = r"""
+using System.Collections.Generic;
+using XTC.oelMVCS;
+
+namespace {{org}}.{{mod}}
+{
+    public class ModuleBaseRoot
+    {
+        public void Inject(Framework _framework)
+        {
+            framework_ = _framework;
+        }
+
+        public virtual void Register()
+        {
+{{register}}
+        }
+
+        public virtual void Cancel()
+        {
+{{cancel}}
+        }
+
+        protected Framework framework_ = null;
+    }
+}
+"""
+
+
 template_module_ModuleRoot_cs = r"""
 using System.Collections.Generic;
 using XTC.oelMVCS;
 
 namespace {{org}}.{{mod}}
 {
-    public class ModuleRoot
+    public class ModuleRoot : ModuleBaseRoot
     {
-        public ModuleRoot()
-        {
-        }
-
-        public void Inject(Framework _framework)
-        {
-            framework_ = _framework;
-        }
-
-        public void Register()
-        {
-{{register}}
-        }
-
-        public void Cancel()
-        {
-{{cancel}}
-        }
-
-        private Framework framework_ = null;
     }
 }
 """
@@ -831,6 +840,11 @@ namespace {{org}}.{{mod}}
         protected {{service}}Model model = null;
         protected I{{service}}UiBridge bridge = null;
 
+        protected virtual string getAttachUri()
+        {
+            return "{{org}}.{{mod}}.{{service}}";
+        }
+
         protected override void preSetup()
         {
             model = findModel({{service}}Model.NAME) as {{service}}Model;
@@ -854,7 +868,7 @@ namespace {{org}}.{{mod}}
             object rootPanel = bridge.getRootPanel();
             // 通知主程序挂载界面
             Dictionary<string, object> data = new Dictionary<string, object>();
-            data["{{org}}.{{mod}}.{{service}}"] = rootPanel;
+            data[getAttachUri()] = rootPanel;
             model.Broadcast("/module/view/attach", data);
             // 监听权限更新
             addRouter("/permission/updated", this.handlePermissionUpdated);
